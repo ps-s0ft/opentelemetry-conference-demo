@@ -1,0 +1,80 @@
+extensions:
+  health_check:
+    endpoint: :1888
+    path: "/health/status"
+  zpages:
+    endpoint: :55679
+ 
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: :4317
+      http:
+        endpoint: :4318
+ 
+processors:
+  batch:
+  memory_limiter:
+    limit_mib: 1536
+    spike_limit_mib: 512
+    check_interval: 5s
+
+exporters:
+  debug:
+    verbosity: detailed
+  file:
+    path: /etc/otelcol/collecteddata.json
+  prometheusremotewrite:
+    endpoint: "http://prometheus:9090/api/v1/write"
+    tls:
+      insecure: true
+  zipkin:
+    endpoint: http://zipkin:9411/api/v2/spans
+  opensearch:
+    logs_index: otel
+    http:
+      endpoint: "http://opensearch:9200"
+      tls:
+        insecure: true
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  otlp/data-prepper:
+    endpoint: data-prepper:21890
+    tls:
+      insecure: true
+      insecure_skip_verify: true
+  otlphttp:
+    endpoint: "http://prometheus:9090/api/v1/otlp"
+    tls:
+      insecure: true
+  prometheus:
+    endpoint: 0.0.0.0:9000
+    resource_to_telemetry_conversion:
+      enabled: true
+      
+service:
+  telemetry:
+    logs:
+      level: DEBUG
+      initial_fields:
+        service: my-instance
+    metrics:
+      level: detailed
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter,batch]
+      exporters: [debug,file,zipkin,otlp/tempo,otlp/data-prepper]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter,batch]
+      exporters: [debug,file,otlphttp,prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter,batch]
+      exporters: [debug,file,opensearch]
+
+  extensions: [zpages, health_check]

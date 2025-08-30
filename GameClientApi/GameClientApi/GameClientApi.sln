@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36408.4
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameClientApi", "GameClientApi\GameClientApi.csproj", "{3ABF0C92-17D0-475E-9399-E04DAD20DCBD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetryConfiguration", "..\..\OpenTelemetryConfiguration\OpenTelemetryConfiguration\OpenTelemetryConfiguration\OpenTelemetryConfiguration.csproj", "{DC348284-D763-4616-8E3F-22AB86FA5236}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3ABF0C92-17D0-475E-9399-E04DAD20DCBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3ABF0C92-17D0-475E-9399-E04DAD20DCBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3ABF0C92-17D0-475E-9399-E04DAD20DCBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3ABF0C92-17D0-475E-9399-E04DAD20DCBD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC348284-D763-4616-8E3F-22AB86FA5236}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC348284-D763-4616-8E3F-22AB86FA5236}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC348284-D763-4616-8E3F-22AB86FA5236}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC348284-D763-4616-8E3F-22AB86FA5236}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BF560FD9-B55B-4F49-9546-57F016339C93}
+	EndGlobalSection
+EndGlobal
