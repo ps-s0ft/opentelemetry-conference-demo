@@ -1,15 +1,19 @@
-To start observability infrastructure use follow command:
-docker-compose up
+To start observability infrastructure use follow command:<br />
+docker-compose up<br /><br />
 
-Links to local resources:
-Zipkin:
-http://localhost:9411/zipkin/
+Links to local resources:<br />
+Zipkin:<br />
+http://localhost:9411/zipkin/<br /><br />
 
-Grafana:
-http://localhost:3000/?orgId=1
+Grafana:<br />
+http://localhost:3000/?orgId=1<br /><br />
 
-OpenSearch:
-http://localhost:5601/app/home#/
+OpenSearch:<br />
+http://localhost:5601/app/home#/<br /><br />
 
-Prometheus:
-http://localhost:9090/query
+Prometheus:<br />
+http://localhost:9090/query<br /><br />
+
+OpenSearch index:<br />
+otel*
+
