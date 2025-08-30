@@ -1,0 +1,157 @@
+networks:
+  otel-collector-network:
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    networks:
+      - otel-collector-network
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ./Collector:/etc/otelcol
+    ports:
+      - 1888:1888    # pprof extension healthcheck of collector
+      - 8888:8888    # Prometheus metrics exposed by the collector http://localhost:8888/metrics
+      - 8889:8889    # Prometheus exporter metrics http://localhost:8889/metrics
+      - 13133:13133  # health_check extension http://localhost:13133/
+      - 4317:4317    # OTLP gRPC receiver
+      - 4318:4318    # OTLP http receiver
+      - 55679:55679  # extension zpages
+      - 9000:9000
+
+  prometheus:
+    image: prom/prometheus:latest
+    networks:
+      - otel-collector-network
+    ports:
+      - 9090:9090
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=1y'
+      - '--web.enable-lifecycle'
+      - '--web.enable-remote-write-receiver'
+      - '--enable-feature=otlp-write-receiver'
+
+  zipkin:
+    image: ghcr.io/openzipkin/zipkin-slim:${TAG:-latest}
+    container_name: zipkin
+    networks:
+      - otel-collector-network
+    environment:
+      - STORAGE_TYPE=mem
+    ports:
+      - 9411:9411
+
+  opensearch:
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch
+    networks:
+      - otel-collector-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    restart: unless-stopped
+    environment:
+      - cluster.name=demo-cluster
+      - node.name=demo-node
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - OPENSEARCH_JAVA_OPTS=-Xms300m -Xmx300m
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - DISABLE_SECURITY_PLUGIN=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - 9200:9200
+
+  opensearch-dashboards:
+     image: opensearchproject/opensearch-dashboards:latest
+     container_name: opensearch-dashboards
+     networks:
+       - otel-collector-network
+     ports:
+       - 5601:5601
+     environment:
+       OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+       DISABLE_SECURITY_DASHBOARDS_PLUGIN: 'true'
+
+  tempo:
+    image: grafana/tempo:1.5.0
+    command: [ "-search.enabled=true", "-config.file=/etc/tempo.yaml" ]
+    container_name: tempo
+    networks:
+      - otel-collector-network
+    volumes:
+      - ./configs/tempo-config.yaml:/etc/tempo.yaml
+      - ./configs/tempo-overrides.yaml:/etc/overrides.yaml
+      - ./tempo-data:/tmp/tempo
+    ports:
+      - 3200:3200
+
+  grafana:
+    image: grafana/grafana:9.2.2
+    container_name: grafana
+    networks:
+      - otel-collector-network
+    volumes:
+      - ./configs/grafana-bootstrap.ini:/etc/grafana/grafana.ini
+      - ./configs/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+      - 3000:3000
+
+  data-prepper:
+    image: opensearchproject/data-prepper:latest
+    container_name: data-prepper
+    networks:
+      - otel-collector-network
+    volumes:
+      - ./configs/data-prepper-pipelines.yaml:/usr/share/data-prepper/pipelines/pipelines.yaml
+      - ./configs/data-prepper-config.yaml:/usr/share/data-prepper/data-prepper-config.yaml
+    ports:
+      - 21890:21890
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    networks:
+      - otel-collector-network
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gameuser
+      POSTGRES_PASSWORD: gamepassword
+      POSTGRES_DB: gamedb
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    networks:
+      - otel-collector-network
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - 8080:80
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
